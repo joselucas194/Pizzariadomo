@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pizzaria do Mô — Sistema de Gestão</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #111111;
+      --bg2:       #1a1a1a;
+      --bg3:       #222222;
+      --gold:      #C9A84C;
+      --gold-light:#E8C97A;
+      --gold-dim:  #7a6228;
+      --gold-bg:   #2a2010;
+      --text:      #F0E6C8;
+      --text2:     #9a8a68;
+      --text3:     #5a5040;
+      --border:    #2e2e2e;
+      --border2:   #3a3020;
+      --radius:    8px;
+      --radius-lg: 12px;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── HEADER ── */
+    header {
+      background: var(--bg2);
+      border-bottom: 1px solid var(--gold-dim);
+      padding: 14px 28px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .logo-circle {
+      width: 48px; height: 48px;
+      background: var(--gold-bg);
+      border: 1.5px solid var(--gold);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+    .header-title  { font-size: 18px; font-weight: 600; color: var(--gold-light); letter-spacing: .4px; }
+    .header-sub    { font-size: 11px; color: var(--text2); margin-top: 2px; }
+
+    /* ── NAV ── */
+    nav {
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      padding: 0 28px;
+      display: flex;
+      gap: 4px;
+    }
+    .nav-btn {
+      padding: 11px 20px;
+      color: var(--text2);
+      background: none;
+      border: none;
+      font-size: 13px;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      font-family: inherit;
+      transition: color .15s;
+    }
+    .nav-btn.active { color: var(--gold-light); border-bottom-color: var(--gold); }
+    .nav-btn:hover  { color: var(--text); }
+
+    /* ── MAIN ── */
+    main { max-width: 1100px; margin: 0 auto; padding: 24px 28px; }
+
+    .section { display: none; }
+    .section.active { display: block; }
+
+    /* ── BUTTONS ── */
+    .btn {
+      padding: 8px 16px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border2);
+      background: var(--bg2);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 13px;
+      font-family: inherit;
+      transition: background .12s, border-color .12s;
+    }
+    .btn:hover { background: var(--bg3); }
+    .btn-primary { background: var(--gold-bg); color: var(--gold-light); border-color: var(--gold-dim); }
+    .btn-primary:hover { background: #352a12; border-color: var(--gold); }
+    .btn-danger  { background: #1f1010; color: #e07070; border-color: #4a2020; }
+    .btn-danger:hover { background: #2a1212; }
+    .btn-sm { padding: 5px 11px; font-size: 12px; }
+
+    /* ── CARDS ── */
+    .card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      margin-bottom: 16px;
+    }
+    .card-body { padding: 18px; }
+
+    /* ── STATS ── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+    .stat-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      text-align: center;
+    }
+    .stat-label { font-size: 10px; color: var(--text2); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 8px; }
+    .stat-value { font-size: 24px; font-weight: 600; color: var(--gold-light); }
+    .stat-value.green { color: #6fcf8a; }
+    .stat-value.blue  { color: #7ab4ef; }
+
+    /* ── SECTION HEADER ── */
+    .section-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .section-title { font-size: 14px; font-weight: 500; color: var(--gold-light); letter-spacing: .3px; }
+
+    /* ── TABLE ── */
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
+    th {
+      text-align: left; padding: 10px 12px;
+      font-size: 10px; font-weight: 500; color: var(--text2);
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+      text-transform: uppercase; letter-spacing: .5px;
+    }
+    td {
+      padding: 11px 12px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+      vertical-align: middle;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background: var(--bg3); }
+
+    /* ── BADGES ── */
+    .badge {
+      display: inline-block; padding: 3px 9px;
+      border-radius: 99px; font-size: 10px; font-weight: 500; letter-spacing: .3px;
+    }
+    .badge-green { background: #0e2218; color: #6fcf8a; border: 1px solid #1a4030; }
+    .badge-amber { background: var(--gold-bg); color: var(--gold-light); border: 1px solid var(--gold-dim); }
+    .badge-red   { background: #1f1010; color: #e07070; border: 1px solid #4a2020; }
+    .badge-blue  { background: #0e1b2e; color: #7ab4ef; border: 1px solid #1a3050; }
+    .badge-gray  { background: var(--bg3); color: var(--text2); border: 1px solid var(--border); }
+
+    /* ── ACTION BUTTONS ── */
+    .acoes { display: flex; gap: 5px; }
+
+    /* ── EMPTY STATE ── */
+    .empty-state { text-align: center; padding: 44px; color: var(--text2); font-size: 13px; }
+
+    /* ── PROGRESS BAR ── */
+    .progress-bar-wrap { height: 4px; background: var(--bg3); border-radius: 99px; overflow: hidden; margin-top: 5px; }
+    .progress-bar { height: 100%; border-radius: 99px; }
+
+    /* ── MODALS ── */
+    .modal-backdrop {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.72);
+      z-index: 200;
+      align-items: center; justify-content: center;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal {
+      background: var(--bg2);
+      border: 1px solid var(--gold-dim);
+      border-radius: var(--radius-lg);
+      padding: 26px;
+      width: 500px; max-width: 95vw;
+      max-height: 88vh; overflow-y: auto;
+    }
+    .modal-title {
+      font-size: 15px; font-weight: 500;
+      color: var(--gold-light);
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px; margin-bottom: 18px;
+    }
+    .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px; border-top: 1px solid var(--border); padding-top: 16px; }
+
+    /* ── FORMS ── */
+    .form-group { margin-bottom: 14px; }
+    .form-label { display: block; font-size: 10px; color: var(--text2); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 5px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    input, select, textarea {
+      width: 100%; font-family: inherit; font-size: 13px;
+      color: var(--text); background: var(--bg);
+      border: 1px solid var(--border2); border-radius: var(--radius);
+      padding: 9px 11px;
+      outline: none; transition: border-color .15s;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--gold-dim); }
+    select option { background: var(--bg2); }
+    textarea { resize: vertical; min-height: 72px; }
+
+    /* ── ITEM LIST (pedido) ── */
+    .items-list { max-height: 200px; overflow-y: auto; margin-bottom: 10px; }
+    .item-row {
+      display: flex; align-items: center; gap: 8px;
+      padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 13px;
+    }
+    .item-row:last-child { border-bottom: none; }
+    .item-qty {
+      width: 26px; height: 26px; border-radius: 50%;
+      background: var(--gold-bg); border: 1px solid var(--gold-dim);
+      color: var(--gold-light);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 500; flex-shrink: 0;
+    }
+    .item-name { flex: 1; }
+    .item-price { color: var(--gold); font-size: 12px; }
+
+    /* ── TOTAL ROW ── */
+    .total-row {
+      display: flex; justify-content: space-between;
+      font-size: 14px; font-weight: 500;
+      padding: 12px 14px;
+      background: var(--gold-bg); border: 1px solid var(--gold-dim);
+      border-radius: var(--radius); margin-top: 10px;
+      color: var(--gold-light);
+    }
+
+    /* ── OBS BOX ── */
+    .obs-box {
+      margin-top: 12px; padding: 10px 12px;
+      background: var(--bg3); border: 1px solid var(--border2);
+      border-radius: var(--radius); font-size: 12px; color: var(--text);
+    }
+    .obs-box span { color: var(--text2); }
+
+    /* ── FOOTER ── */
+    footer {
+      text-align: center; padding: 22px;
+      font-size: 11px; color: var(--text3);
+      border-top: 1px solid var(--border);
+      margin-top: 24px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo-circle">🍕</div>
+  <div>
+    <div class="header-title">Pizzaria do Mô</div>
+    <div class="header-sub">Sistema de Gestão Interno</div>
+  </div>
+</header>
+
+<nav>
+  <button class="nav-btn active" onclick="switchTab('pedidos',this)">Pedidos</button>
+  <button class="nav-btn" onclick="switchTab('cardapio',this)">Cardápio</button>
+  <button class="nav-btn" onclick="switchTab('estoque',this)">Estoque</button>
+  <button class="nav-btn" onclick="switchTab('caixa',this)">Caixa</button>
+</nav>
+
+<main>
+
+  <!-- ══ PEDIDOS ══ -->
+  <div class="section active" id="sec-pedidos">
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-label">Pedidos hoje</div><div class="stat-value" id="stat-total">0</div></div>
+      <div class="stat-card"><div class="stat-label">Em andamento</div><div class="stat-value" id="stat-andamento">0</div></div>
+      <div class="stat-card"><div class="stat-label">Faturamento</div><div class="stat-value green" id="stat-fat">R$ 0,00</div></div>
+    </div>
+    <div class="section-header">
+      <span class="section-title">Pedidos</span>
+      <button class="btn btn-primary btn-sm" onclick="openPedidoModal()">+ Novo pedido</button>
+    </div>
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th style="width:50px">#</th>
+            <th style="width:130px">Cliente</th>
+            <th style="width:100px">Itens</th>
+            <th style="width:90px">Total</th>
+            <th style="width:90px">Pagamento</th>
+            <th style="width:100px">Status</th>
+            <th style="width:120px">Ações</th>
+          </tr></thead>
+          <tbody id="pedidos-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ CARDÁPIO ══ -->
+  <div class="section" id="sec-cardapio">
+    <div class="section-header">
+      <span class="section-title">Cardápio</span>
+      <button class="btn btn-primary btn-sm" onclick="openCardapioModal()">+ Novo item</button>
+    </div>
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th style="width:160px">Nome</th>
+            <th style="width:100px">Categoria</th>
+            <th style="width:90px">Preço</th>
+            <th style="width:150px">Descrição</th>
+            <th style="width:100px">Disponível</th>
+            <th style="width:120px">Ações</th>
+          </tr></thead>
+          <tbody id="cardapio-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ ESTOQUE ══ -->
+  <div class="section" id="sec-estoque">
+    <div class="section-header">
+      <span class="section-title">Estoque</span>
+      <button class="btn btn-primary btn-sm" onclick="openEstoqueModal()">+ Novo item</button>
+    </div>
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th style="width:160px">Item</th>
+            <th style="width:100px">Qtd atual</th>
+            <th style="width:100px">Mínimo</th>
+            <th style="width:80px">Unidade</th>
+            <th style="width:130px">Status</th>
+            <th style="width:110px">Ações</th>
+          </tr></thead>
+          <tbody id="estoque-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ CAIXA ══ -->
+  <div class="section" id="sec-caixa">
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-label">Dinheiro</div><div class="stat-value green" id="cx-dinheiro">R$ 0,00</div></div>
+      <div class="stat-card"><div class="stat-label">Pix</div><div class="stat-value blue" id="cx-pix">R$ 0,00</div></div>
+      <div class="stat-card"><div class="stat-label">Cartão</div><div class="stat-value" id="cx-cartao">R$ 0,00</div></div>
+      <div class="stat-card"><div class="stat-label">Total geral</div><div class="stat-value" id="cx-total">R$ 0,00</div></div>
+    </div>
+    <div class="section-header">
+      <span class="section-title">Movimentações</span>
+    </div>
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th style="width:50px">#</th>
+            <th style="width:150px">Cliente</th>
+            <th style="width:100px">Forma</th>
+            <th style="width:100px">Valor</th>
+            <th style="width:110px">Status</th>
+          </tr></thead>
+          <tbody id="caixa-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<footer>Pizzaria do Mô &copy; 2025 — Sistema de Gestão Interno</footer>
+
+<!-- ══ MODAL PEDIDO ══ -->
+<div class="modal-backdrop" id="modal-pedido">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-title" id="mpedido-title">Novo Pedido</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Cliente</label><input id="p-cliente" placeholder="Nome do cliente"></div>
+      <div class="form-group"><label class="form-label">Telefone</label><input id="p-tel" placeholder="(00) 00000-0000"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Itens do pedido</label>
+      <div style="display:flex;gap:8px;margin-bottom:8px">
+        <select id="p-item-sel" style="flex:1"></select>
+        <button class="btn btn-primary btn-sm" onclick="adicionarItem()">+ Adicionar</button>
+      </div>
+      <div class="items-list" id="p-items-list"></div>
+      <div class="total-row"><span>Total</span><span id="p-total-label">R$ 0,00</span></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Forma de pagamento</label>
+        <select id="p-pag" onchange="calcTotal()">
+          <option value="dinheiro">Dinheiro</option>
+          <option value="pix">Pix</option>
+          <option value="credito">Cartão de crédito (+R$ 2,00)</option>
+          <option value="debito">Cartão de débito (+R$ 1,00)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Status</label>
+        <select id="p-status">
+          <option value="recebido">Recebido</option>
+          <option value="preparo">Em preparo</option>
+          <option value="pronto">Pronto</option>
+          <option value="entregue">Entregue</option>
+          <option value="cancelado">Cancelado</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Observação</label>
+      <textarea id="p-obs" placeholder="Ex: sem cebola, extra queijo, endereço de entrega..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-pedido')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarPedido()">Salvar pedido</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL CARDÁPIO ══ -->
+<div class="modal-backdrop" id="modal-cardapio">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-title" id="mcardapio-title">Novo item do cardápio</div>
+    <div class="form-group"><label class="form-label">Nome</label><input id="c-nome" placeholder="Ex: Pizza Margherita"></div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Categoria</label>
+        <select id="c-cat"><option>Pizza</option><option>Bebida</option><option>Sobremesa</option><option>Entrada</option><option>Outro</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">Preço (R$)</label><input type="number" id="c-preco" placeholder="0,00" step="0.01" min="0"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Descrição</label><textarea id="c-desc" placeholder="Ingredientes, tamanho, etc."></textarea></div>
+    <div class="form-group">
+      <label class="form-label">Disponível</label>
+      <select id="c-disp"><option value="sim">Sim</option><option value="nao">Não</option></select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-cardapio')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarCardapio()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL ESTOQUE ══ -->
+<div class="modal-backdrop" id="modal-estoque">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-title" id="mestoque-title">Novo item de estoque</div>
+    <div class="form-group"><label class="form-label">Item</label><input id="e-nome" placeholder="Ex: Farinha de trigo"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Quantidade atual</label><input type="number" id="e-qty" placeholder="0" min="0"></div>
+      <div class="form-group"><label class="form-label">Quantidade mínima</label><input type="number" id="e-min" placeholder="0" min="0"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Unidade</label>
+      <select id="e-und"><option>kg</option><option>g</option><option>L</option><option>ml</option><option>un</option><option>cx</option><option>pct</option></select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-estoque')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarEstoque()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL DETALHE ══ -->
+<div class="modal-backdrop" id="modal-detalhe">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-title">Detalhes do Pedido</div>
+    <div id="detalhe-content"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="closeModal('modal-detalhe')">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* ── ESTADO ── */
+  let pedidos = [];
+  let cardapio = [
+    {id:1,nome:'Pizza Calabresa',cat:'Pizza',preco:42,desc:'Molho, queijo, calabresa',disp:'sim'},
+    {id:2,nome:'Pizza Margherita',cat:'Pizza',preco:38,desc:'Molho, queijo, tomate, manjericão',disp:'sim'},
+    {id:3,nome:'Pizza Frango c/ Catupiry',cat:'Pizza',preco:46,desc:'Frango desfiado, catupiry',disp:'sim'},
+    {id:4,nome:'Pizza 4 Queijos',cat:'Pizza',preco:50,desc:'Mozarela, gouda, parmesão, cheddar',disp:'sim'},
+    {id:5,nome:'Refrigerante 2L',cat:'Bebida',preco:12,desc:'Coca, guaraná, Sprite',disp:'sim'},
+    {id:6,nome:'Água mineral',cat:'Bebida',preco:5,desc:'500ml',disp:'sim'},
+    {id:7,nome:'Pudim',cat:'Sobremesa',preco:15,desc:'Pudim de leite condensado',disp:'sim'},
+  ];
+  let estoque = [
+    {id:1,nome:'Farinha de trigo',qty:25,min:10,unidade:'kg'},
+    {id:2,nome:'Queijo mozarela',qty:8,min:5,unidade:'kg'},
+    {id:3,nome:'Molho de tomate',qty:15,min:5,unidade:'L'},
+    {id:4,nome:'Calabresa',qty:3,min:4,unidade:'kg'},
+    {id:5,nome:'Frango',qty:6,min:3,unidade:'kg'},
+    {id:6,nome:'Refrigerante 2L',qty:24,min:12,unidade:'un'},
+  ];
+  let nextPId=1, nextCId=8, nextEId=7;
+  let editPedidoId=null, editCardapioId=null, editEstoqueId=null;
+  let pedidoItens=[];
+
+  /* ── HELPERS ── */
+  const fmt = v => 'R$ ' + v.toFixed(2).replace('.',',');
+  const $  = id => document.getElementById(id);
+
+  function totalPedido(p){
+    let b = p.itens.reduce((a,i)=>a+i.preco*i.qty,0);
+    if(p.pagamento==='credito') b+=2;
+    if(p.pagamento==='debito')  b+=1;
+    return b;
+  }
+
+  function pagLabel(p){
+    return {dinheiro:'Dinheiro',pix:'Pix',credito:'Crédito',debito:'Débito'}[p]||p;
+  }
+
+  function statusBadge(s){
+    const cls={recebido:'badge-blue',preparo:'badge-amber',pronto:'badge-green',entregue:'badge-gray',cancelado:'badge-red'};
+    const lbl={recebido:'Recebido',preparo:'Em preparo',pronto:'Pronto',entregue:'Entregue',cancelado:'Cancelado'};
+    return `<span class="badge ${cls[s]||'badge-gray'}">${lbl[s]||s}</span>`;
+  }
+
+  /* ── NAVEGAÇÃO ── */
+  function switchTab(t,btn){
+    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+    $('sec-'+t).classList.add('active');
+    btn.classList.add('active');
+    renderAll();
+  }
+
+  /* ── MODAIS ── */
+  function openModal(id){ $(id).classList.add('open'); }
+  function closeModal(id){ $(id).classList.remove('open'); }
+  document.querySelectorAll('.modal-backdrop').forEach(m=>
+    m.addEventListener('click', e=>{ if(e.target===m) m.classList.remove('open'); })
+  );
+
+  /* ── RENDER ── */
+  function renderAll(){ renderPedidos(); renderCardapio(); renderEstoque(); renderCaixa(); }
+
+  function renderPedidos(){
+    const tb = $('pedidos-tbody');
+    if(!pedidos.length){
+      tb.innerHTML=`<tr><td colspan="7"><div class="empty-state">Nenhum pedido ainda. Crie o primeiro!</div></td></tr>`;
+    } else {
+      tb.innerHTML = pedidos.map(p=>{
+        const total = totalPedido(p);
+        const nomes = p.itens.map(i=>`${i.qty}x ${i.nome}`).join(', ');
+        return `<tr>
+          <td>#${p.id}</td>
+          <td title="${p.cliente}">${p.cliente}</td>
+          <td title="${nomes}">${nomes.length>22?nomes.slice(0,22)+'…':nomes}</td>
+          <td style="color:var(--gold)">${fmt(total)}</td>
+          <td>${pagLabel(p.pagamento)}</td>
+          <td>${statusBadge(p.status)}</td>
+          <td><div class="acoes">
+            <button class="btn btn-sm" onclick="verDetalhe(${p.id})" title="Detalhes">👁</button>
+            <button class="btn btn-sm" onclick="editarPedido(${p.id})" title="Editar">✏️</button>
+            <button class="btn btn-sm btn-danger" onclick="excluirPedido(${p.id})" title="Excluir">🗑</button>
+          </div></td>
+        </tr>`;
+      }).join('');
+    }
+    const ativos = pedidos.filter(p=>p.status!=='entregue'&&p.status!=='cancelado').length;
+    const fat    = pedidos.filter(p=>p.status!=='cancelado').reduce((a,p)=>a+totalPedido(p),0);
+    $('stat-total').textContent    = pedidos.length;
+    $('stat-andamento').textContent= ativos;
+    $('stat-fat').textContent      = fmt(fat);
+  }
+
+  function renderCardapio(){
+    const tb = $('cardapio-tbody');
+    if(!cardapio.length){
+      tb.innerHTML=`<tr><td colspan="6"><div class="empty-state">Cardápio vazio.</div></td></tr>`;return;
+    }
+    tb.innerHTML = cardapio.map(c=>`<tr>
+      <td>${c.nome}</td>
+      <td><span style="font-size:11px;color:var(--text2)">${c.cat}</span></td>
+      <td style="color:var(--gold)">${fmt(c.preco)}</td>
+      <td title="${c.desc}" style="color:var(--text2)">${c.desc.length>30?c.desc.slice(0,30)+'…':c.desc}</td>
+      <td><span class="badge ${c.disp==='sim'?'badge-green':'badge-red'}">${c.disp==='sim'?'Sim':'Não'}</span></td>
+      <td><div class="acoes">
+        <button class="btn btn-sm" onclick="editarCardapio(${c.id})">✏️ Editar</button>
+        <button class="btn btn-sm btn-danger" onclick="excluirCardapio(${c.id})">🗑</button>
+      </div></td>
+    </tr>`).join('');
+  }
+
+  function renderEstoque(){
+    const tb = $('estoque-tbody');
+    if(!estoque.length){
+      tb.innerHTML=`<tr><td colspan="6"><div class="empty-state">Estoque vazio.</div></td></tr>`;return;
+    }
+    tb.innerHTML = estoque.map(e=>{
+      const pct  = Math.min(100, Math.round((e.qty/Math.max(e.min*2,1))*100));
+      const baixo= e.qty < e.min;
+      const cor  = baixo ? '#e07070' : (e.qty < e.min*1.5 ? '#C9A84C' : '#6fcf8a');
+      return `<tr>
+        <td>${e.nome}</td>
+        <td>${e.qty}</td>
+        <td>${e.min}</td>
+        <td style="color:var(--text2)">${e.unidade}</td>
+        <td>
+          <span class="badge ${baixo?'badge-red':'badge-green'}">${baixo?'Baixo':'OK'}</span>
+          <div class="progress-bar-wrap"><div class="progress-bar" style="width:${pct}%;background:${cor}"></div></div>
+        </td>
+        <td><div class="acoes">
+          <button class="btn btn-sm" onclick="editarEstoque(${e.id})">✏️</button>
+          <button class="btn btn-sm btn-danger" onclick="excluirEstoque(${e.id})">🗑</button>
+        </div></td>
+      </tr>`;
+    }).join('');
+  }
+
+  function renderCaixa(){
+    const pagos = pedidos.filter(p=>p.status!=='cancelado');
+    const din  = pagos.filter(p=>p.pagamento==='dinheiro').reduce((a,p)=>a+totalPedido(p),0);
+    const pix  = pagos.filter(p=>p.pagamento==='pix').reduce((a,p)=>a+totalPedido(p),0);
+    const cart = pagos.filter(p=>p.pagamento==='credito'||p.pagamento==='debito').reduce((a,p)=>a+totalPedido(p),0);
+    $('cx-dinheiro').textContent = fmt(din);
+    $('cx-pix').textContent      = fmt(pix);
+    $('cx-cartao').textContent   = fmt(cart);
+    $('cx-total').textContent    = fmt(din+pix+cart);
+    const tb = $('caixa-tbody');
+    if(!pagos.length){
+      tb.innerHTML=`<tr><td colspan="5"><div class="empty-state">Sem movimentações.</div></td></tr>`;return;
+    }
+    tb.innerHTML = [...pagos].reverse().map(p=>`<tr>
+      <td>#${p.id}</td>
+      <td>${p.cliente}</td>
+      <td>${pagLabel(p.pagamento)}</td>
+      <td style="color:var(--gold)">${fmt(totalPedido(p))}</td>
+      <td>${statusBadge(p.status)}</td>
+    </tr>`).join('');
+  }
+
+  /* ── PEDIDO ── */
+  function popularSelectCardapio(){
+    $('p-item-sel').innerHTML = cardapio.filter(c=>c.disp==='sim')
+      .map(c=>`<option value="${c.id}">${c.nome} — ${fmt(c.preco)}</option>`).join('');
+  }
+
+  function renderPedidoItens(){
+    const el = $('p-items-list');
+    if(!pedidoItens.length){
+      el.innerHTML=`<div style="color:var(--text2);font-size:12px;padding:8px 0">Nenhum item adicionado</div>`;
+    } else {
+      el.innerHTML = pedidoItens.map((it,i)=>`<div class="item-row">
+        <div class="item-qty">${it.qty}</div>
+        <div class="item-name">${it.nome}</div>
+        <div class="item-price">${fmt(it.preco*it.qty)}</div>
+        <button class="btn btn-sm btn-danger" style="padding:2px 8px" onclick="removerItem(${i})">×</button>
+      </div>`).join('');
+    }
+    calcTotal();
+  }
+
+  function adicionarItem(){
+    const id   = parseInt($('p-item-sel').value);
+    const item = cardapio.find(c=>c.id===id);
+    if(!item) return;
+    const exist = pedidoItens.find(i=>i.id===id);
+    if(exist) exist.qty++;
+    else pedidoItens.push({id,nome:item.nome,preco:item.preco,qty:1});
+    renderPedidoItens();
+  }
+
+  function removerItem(idx){ pedidoItens.splice(idx,1); renderPedidoItens(); }
+
+  function calcTotal(){
+    const base = pedidoItens.reduce((a,i)=>a+i.preco*i.qty,0);
+    const pag  = $('p-pag').value;
+    let total  = base;
+    if(pag==='credito') total+=2;
+    if(pag==='debito')  total+=1;
+    $('p-total-label').textContent = fmt(total);
+  }
+
+  function openPedidoModal(id=null){
+    editPedidoId = id; pedidoItens = [];
+    $('mpedido-title').textContent = id ? 'Editar Pedido' : 'Novo Pedido';
+    popularSelectCardapio();
+    if(id){
+      const p = pedidos.find(x=>x.id===id);
+      $('p-cliente').value = p.cliente;
+      $('p-tel').value     = p.telefone||'';
+      $('p-pag').value     = p.pagamento;
+      $('p-status').value  = p.status;
+      $('p-obs').value     = p.obs||'';
+      pedidoItens = p.itens.map(i=>({...i}));
+    } else {
+      $('p-cliente').value=''; $('p-tel').value='';
+      $('p-pag').value='dinheiro'; $('p-status').value='recebido'; $('p-obs').value='';
+    }
+    renderPedidoItens();
+    openModal('modal-pedido');
+  }
+
+  function salvarPedido(){
+    const cliente = $('p-cliente').value.trim();
+    if(!cliente){ alert('Informe o nome do cliente.'); return; }
+    if(!pedidoItens.length){ alert('Adicione pelo menos um item.'); return; }
+    const dados = {
+      cliente, telefone:$('p-tel').value.trim(),
+      pagamento:$('p-pag').value, status:$('p-status').value,
+      obs:$('p-obs').value.trim(), itens:pedidoItens.map(i=>({...i}))
+    };
+    if(editPedidoId){
+      const idx = pedidos.findIndex(p=>p.id===editPedidoId);
+      pedidos[idx] = {...pedidos[idx],...dados};
+    } else {
+      pedidos.push({id:nextPId++,...dados});
+    }
+    closeModal('modal-pedido'); renderAll();
+  }
+
+  function editarPedido(id){ openPedidoModal(id); }
+  function excluirPedido(id){
+    if(confirm('Excluir este pedido?')){ pedidos=pedidos.filter(p=>p.id!==id); renderAll(); }
+  }
+
+  function verDetalhe(id){
+    const p     = pedidos.find(x=>x.id===id);
+    const total = totalPedido(p);
+    const itensHtml = p.itens.map(i=>`<div class="item-row">
+      <div class="item-qty">${i.qty}</div>
+      <div class="item-name">${i.nome}</div>
+      <div class="item-price">${fmt(i.preco*i.qty)}</div>
+    </div>`).join('');
+    $('detalhe-content').innerHTML = `
+      <div style="font-size:13px;margin-bottom:10px"><span style="color:var(--text2)">Cliente:</span> ${p.cliente}${p.telefone?' — '+p.telefone:''}</div>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px">${statusBadge(p.status)}<span style="font-size:12px;color:var(--text2)">${pagLabel(p.pagamento)}</span></div>
+      <div class="items-list" style="margin-bottom:10px">${itensHtml}</div>
+      ${p.pagamento==='credito'?'<div style="font-size:11px;color:var(--text2);margin-bottom:4px">Taxa cartão de crédito: +R$ 2,00</div>':''}
+      ${p.pagamento==='debito'?'<div style="font-size:11px;color:var(--text2);margin-bottom:4px">Taxa cartão de débito: +R$ 1,00</div>':''}
+      <div class="total-row"><span>Total</span><span>${fmt(total)}</span></div>
+      ${p.obs?`<div class="obs-box"><span>Obs:</span> ${p.obs}</div>`:''}
+    `;
+    openModal('modal-detalhe');
+  }
+
+  /* ── CARDÁPIO ── */
+  function openCardapioModal(id=null){
+    editCardapioId = id;
+    $('mcardapio-title').textContent = id ? 'Editar item' : 'Novo item do cardápio';
+    if(id){
+      const c=$('mcardapio-title'), item=cardapio.find(x=>x.id===id);
+      $('c-nome').value=item.nome; $('c-cat').value=item.cat;
+      $('c-preco').value=item.preco; $('c-desc').value=item.desc; $('c-disp').value=item.disp;
+    } else {
+      $('c-nome').value=''; $('c-cat').value='Pizza';
+      $('c-preco').value=''; $('c-desc').value=''; $('c-disp').value='sim';
+    }
+    openModal('modal-cardapio');
+  }
+
+  function salvarCardapio(){
+    const nome  = $('c-nome').value.trim();
+    const preco = parseFloat($('c-preco').value);
+    if(!nome){ alert('Informe o nome.'); return; }
+    if(isNaN(preco)||preco<0){ alert('Informe um preço válido.'); return; }
+    const dados={nome,cat:$('c-cat').value,preco,desc:$('c-desc').value.trim(),disp:$('c-disp').value};
+    if(editCardapioId){
+      const idx=cardapio.findIndex(c=>c.id===editCardapioId);
+      cardapio[idx]={...cardapio[idx],...dados};
+    } else cardapio.push({id:nextCId++,...dados});
+    closeModal('modal-cardapio'); renderAll();
+  }
+
+  function editarCardapio(id){ openCardapioModal(id); }
+  function excluirCardapio(id){
+    if(confirm('Excluir item do cardápio?')){ cardapio=cardapio.filter(c=>c.id!==id); renderAll(); }
+  }
+
+  /* ── ESTOQUE ── */
+  function openEstoqueModal(id=null){
+    editEstoqueId = id;
+    $('mestoque-title').textContent = id ? 'Editar item' : 'Novo item de estoque';
+    if(id){
+      const e=estoque.find(x=>x.id===id);
+      $('e-nome').value=e.nome; $('e-qty').value=e.qty; $('e-min').value=e.min; $('e-und').value=e.unidade;
+    } else {
+      $('e-nome').value=''; $('e-qty').value=''; $('e-min').value=''; $('e-und').value='kg';
+    }
+    openModal('modal-estoque');
+  }
+
+  function salvarEstoque(){
+    const nome = $('e-nome').value.trim();
+    const qty  = parseFloat($('e-qty').value);
+    const min  = parseFloat($('e-min').value);
+    if(!nome){ alert('Informe o nome.'); return; }
+    if(isNaN(qty)||qty<0){ alert('Informe uma quantidade válida.'); return; }
+    const dados={nome,qty,min:isNaN(min)?0:min,unidade:$('e-und').value};
+    if(editEstoqueId){
+      const idx=estoque.findIndex(e=>e.id===editEstoqueId);
+      estoque[idx]={...estoque[idx],...dados};
+    } else estoque.push({id:nextEId++,...dados});
+    closeModal('modal-estoque'); renderAll();
+  }
+
+  function editarEstoque(id){ openEstoqueModal(id); }
+  function excluirEstoque(id){
+    if(confirm('Excluir item do estoque?')){ estoque=estoque.filter(e=>e.id!==id); renderAll(); }
+  }
+
+  /* ── INIT ── */
+  renderAll();
+</script>
+</body>
+</html>
